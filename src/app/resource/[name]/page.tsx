@@ -3,16 +3,18 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { FHIR_RESOURCES, FHIR_LEVELS, FhirResourceInfo } from '@/lib/fhir-data';
-import { ArrowLeft, ExternalLink, Code, BookOpen } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Code, BookOpen, Boxes } from 'lucide-react';
 import JsonViewer from '@/components/JsonViewer';
 import SchemaViewer from '@/components/SchemaViewer';
+import CodeGenerator from '@/components/CodeGenerator';
+import Visualization3D from '@/components/Visualization3D';
 
 export default function ResourceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const resourceName = params.name as string;
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'schema' | 'examples'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'schema' | 'examples' | 'codegen' | 'visualization'>('overview');
   const [exampleData, setExampleData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -142,7 +144,9 @@ export default function ResourceDetailPage() {
               {[
                 { id: 'overview', label: 'Overview', icon: BookOpen },
                 { id: 'schema', label: 'Schema', icon: Code },
-                { id: 'examples', label: 'Examples', icon: ExternalLink, count: resource.examples?.length || 0 }
+                { id: 'examples', label: 'Examples', icon: ExternalLink, count: resource.examples?.length || 0 },
+                { id: 'visualization', label: '3D Visualization', icon: Boxes },
+                { id: 'codegen', label: 'Code Generator', icon: Code }
               ].map(({ id, label, icon: Icon, count }) => (
                 <button
                   key={id}
@@ -180,6 +184,14 @@ export default function ResourceDetailPage() {
                 examples={exampleData} 
                 loading={loading}
               />
+            )}
+            
+            {activeTab === 'visualization' && (
+              <VisualizationTab resource={resource} examples={exampleData} />
+            )}
+            
+            {activeTab === 'codegen' && (
+              <CodeGeneratorTab resource={resource} />
             )}
           </div>
         </div>
@@ -351,6 +363,190 @@ function ExamplesTab({
           Showing first 3 examples of {resource.examples.length} available
         </div>
       )}
+    </div>
+  );
+}
+
+function VisualizationTab({ resource, examples }: { resource: FhirResourceInfo; examples: any[] }) {
+  const [selectedExample, setSelectedExample] = useState<any>(null);
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+
+  // Use first example with data as default visualization
+  const defaultExample = examples.find(ex => ex.data && !ex.error)?.data;
+  const visualizationData = selectedExample || defaultExample;
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <Boxes className="h-5 w-5 text-indigo-400" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-indigo-800">
+              3D Visualization for {resource.name}
+            </h3>
+            <div className="mt-2 text-sm text-indigo-700">
+              <p>
+                Explore the structure and relationships of {resource.name} resources in an interactive 3D environment. 
+                This visualization helps understand the complexity and connections within FHIR resources.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Example Selector */}
+      {examples.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 mb-3">Select Example to Visualize:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {examples.map((example, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedExample(example.data)}
+                disabled={!example.data || example.error}
+                className={`text-left p-3 rounded-lg border transition-colors ${
+                  selectedExample === example.data
+                    ? 'border-blue-500 bg-blue-50'
+                    : example.data && !example.error
+                    ? 'border-gray-300 hover:border-gray-400 bg-white'
+                    : 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                }`}
+              >
+                <div className="font-medium text-sm">
+                  {example.filename.replace(/\.(json|xml)$/, '')}
+                </div>
+                {example.error ? (
+                  <div className="text-xs text-red-600 mt-1">{example.error}</div>
+                ) : example.data ? (
+                  <div className="text-xs text-gray-600 mt-1">
+                    {Object.keys(example.data).length} properties
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-500 mt-1">Loading...</div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 3D Visualization */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        {visualizationData ? (
+          <Visualization3D
+            data={visualizationData}
+            width={800}
+            height={600}
+            onNodeSelect={setSelectedNode}
+            className="w-full"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-96 text-gray-500">
+            <div className="text-center">
+              <Boxes className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No visualization data available</h3>
+              <p className="text-sm">
+                {examples.length > 0 
+                  ? 'Select an example above to visualize its structure'
+                  : 'Load examples first to see 3D visualizations'
+                }
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Selected Node Details */}
+      {selectedNode && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 mb-3">Selected Node Details</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <dl className="space-y-2">
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Label:</dt>
+                  <dd className="text-sm text-gray-900">{selectedNode.label}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Type:</dt>
+                  <dd className="text-sm text-gray-900 capitalize">{selectedNode.type}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Connections:</dt>
+                  <dd className="text-sm text-gray-900">{selectedNode.connections?.length || 0}</dd>
+                </div>
+                {selectedNode.resourceType && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Resource Type:</dt>
+                    <dd className="text-sm text-gray-900">{selectedNode.resourceType}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+            <div>
+              <h5 className="text-sm font-medium text-gray-500 mb-2">Metadata:</h5>
+              <div className="bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
+                <pre className="text-xs text-gray-700">
+                  {JSON.stringify(selectedNode.metadata, null, 2)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visualization Help */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h4 className="font-medium text-gray-900 mb-3">How to Use the 3D Visualization</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+          <div>
+            <h5 className="font-medium text-gray-900 mb-2">Navigation:</h5>
+            <ul className="space-y-1">
+              <li>• Drag to rotate the view</li>
+              <li>• Scroll to zoom in/out</li>
+              <li>• Click nodes to select them</li>
+              <li>• Use controls for auto-rotation</li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-medium text-gray-900 mb-2">Node Types:</h5>
+            <ul className="space-y-1">
+              <li>• <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>Squares: Resources</li>
+              <li>• <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>Circles: Properties</li>
+              <li>• <span className="inline-block w-3 h-3 bg-orange-500 mr-2" style={{clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'}}></span>Diamonds: References</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CodeGeneratorTab({ resource }: { resource: FhirResourceInfo }) {
+  return (
+    <div className="space-y-6">
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <Code className="h-5 w-5 text-purple-400" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-purple-800">
+              Code Generator for {resource.name}
+            </h3>
+            <div className="mt-2 text-sm text-purple-700">
+              <p>
+                Generate TypeScript interfaces, JavaScript objects, JSON examples, and cURL commands 
+                for the {resource.name} resource. Perfect for developers getting started with FHIR implementation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <CodeGenerator resourceName={resource.name} />
     </div>
   );
 }

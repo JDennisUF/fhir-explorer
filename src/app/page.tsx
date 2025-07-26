@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import { FHIR_LEVELS, FHIR_RESOURCES, searchResources } from '@/lib/fhir-data';
 import ResourceCard from '@/components/ResourceCard';
 import SearchAndFilter from '@/components/SearchAndFilter';
+import LanguageSelector from '@/components/LanguageSelector';
+import { useI18n } from '@/contexts/I18nContext';
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useI18n();
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3 | 4 | 5 | null>(3);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,11 +43,79 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">FHIR R4 Explorer</h1>
-              <p className="text-gray-600 mt-1">Interactive learning tool for FHIR Release 4</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('header.subtitle')}</p>
             </div>
-            <div className="text-sm text-gray-500">
-              Explore and learn FHIR resources organized by the 5-level hierarchy
+            <div className="flex items-center space-x-4">
+              <span className="hidden lg:block text-sm text-gray-500">
+                {t('header.description')}
+              </span>
+              <LanguageSelector variant="compact" />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => router.push('/learn')}
+                  className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">📚</span>
+                  <span className="hidden md:inline">📚 {t('navigation.learn')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/relationships')}
+                  className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">🔗</span>
+                  <span className="hidden md:inline">🔗 {t('navigation.relationships')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/fhirpath')}
+                  className="inline-flex items-center px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">🔍</span>
+                  <span className="hidden md:inline">🔍 {t('navigation.fhirpath')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/profiles')}
+                  className="inline-flex items-center px-3 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">⚙️</span>
+                  <span className="hidden md:inline">⚙️ {t('navigation.profiles')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/collaborate')}
+                  className="inline-flex items-center px-3 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">👥</span>
+                  <span className="hidden md:inline">👥 {t('navigation.collaborate')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/servers')}
+                  className="inline-flex items-center px-3 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">🌐</span>
+                  <span className="hidden md:inline">🌐 {t('navigation.servers')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/analytics')}
+                  className="inline-flex items-center px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">📊</span>
+                  <span className="hidden md:inline">📊 {t('navigation.analytics')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/testing')}
+                  className="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">🧪</span>
+                  <span className="hidden md:inline">🧪 {t('navigation.testing')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/playground')}
+                  className="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs md:text-sm font-medium"
+                >
+                  <span className="md:hidden">🛝</span>
+                  <span className="hidden md:inline">🛝 {t('navigation.playground')}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
