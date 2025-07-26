@@ -186,10 +186,10 @@ export default function ProfilesPage() {
                 </div>
                 <div className="divide-y divide-gray-200">
                   {profiles.map(profile => (
-                    <button
+                    <div
                       key={profile.id}
                       onClick={() => handleProfileSelect(profile)}
-                      className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
+                      className={`w-full text-left p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                         selectedProfile?.id === profile.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
                       }`}
                     >
@@ -223,7 +223,7 @@ export default function ProfilesPage() {
                           <Download className="h-4 w-4" />
                         </button>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
