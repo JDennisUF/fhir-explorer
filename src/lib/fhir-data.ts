@@ -6,6 +6,9 @@ export interface FhirResourceInfo {
   category: string;
   maturityLevel?: string;
   examples?: string[];
+  relatedResources?: string[];
+  commonUses?: string[];
+  keyProperties?: string[];
 }
 
 // FHIR's 5-level hierarchy
@@ -85,7 +88,10 @@ export const FHIR_RESOURCES: Record<string, FhirResourceInfo> = {
     description: "Information about an individual or animal receiving health care services",
     level: 3,
     category: "administrative",
-    examples: ["patient-example.json", "patient-example-f001-pieter.json"]
+    examples: ["patient-example.json", "patient-example-f001-pieter.json"],
+    relatedResources: ["Encounter", "Observation", "Procedure", "Practitioner", "Organization"],
+    commonUses: ["Patient registration", "Demographics", "Contact information", "Insurance details"],
+    keyProperties: ["identifier", "name", "gender", "birthDate", "address", "telecom"]
   },
   "Practitioner": {
     name: "Practitioner", 
@@ -124,7 +130,10 @@ export const FHIR_RESOURCES: Record<string, FhirResourceInfo> = {
     description: "Measurements and simple assertions about a patient",
     level: 4,
     category: "clinical",
-    examples: ["observation-example.json", "observation-example-respiratory-rate.json"]
+    examples: ["observation-example.json", "observation-example-respiratory-rate.json"],
+    relatedResources: ["Patient", "Encounter", "DiagnosticReport", "ValueSet", "CodeSystem"],
+    commonUses: ["Vital signs", "Lab results", "Clinical measurements", "Survey responses"],
+    keyProperties: ["status", "code", "subject", "valueQuantity", "component", "referenceRange"]
   },
   "Procedure": {
     name: "Procedure",
@@ -197,7 +206,10 @@ export function searchResources(query: string): FhirResourceInfo[] {
   const lowercaseQuery = query.toLowerCase();
   return Object.values(FHIR_RESOURCES).filter(resource => 
     resource.name.toLowerCase().includes(lowercaseQuery) ||
-    resource.description.toLowerCase().includes(lowercaseQuery)
+    resource.description.toLowerCase().includes(lowercaseQuery) ||
+    resource.commonUses?.some(use => use.toLowerCase().includes(lowercaseQuery)) ||
+    resource.keyProperties?.some(prop => prop.toLowerCase().includes(lowercaseQuery)) ||
+    resource.relatedResources?.some(rel => rel.toLowerCase().includes(lowercaseQuery))
   );
 }
 

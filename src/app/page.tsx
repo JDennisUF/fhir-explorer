@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { FHIR_LEVELS, FHIR_RESOURCES, searchResources } from '@/lib/fhir-data';
 import ResourceCard from '@/components/ResourceCard';
 import SearchAndFilter from '@/components/SearchAndFilter';
 
 export default function Home() {
+  const router = useRouter();
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3 | 4 | 5 | null>(3);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,10 +84,7 @@ export default function Home() {
               <ResourceCard
                 key={resource.name}
                 resource={resource}
-                onClick={() => {
-                  // TODO: Navigate to resource detail page
-                  console.log('Clicked resource:', resource.name);
-                }}
+                onClick={() => router.push(`/resource/${resource.name}`)}
               />
             ))}
           </div>
