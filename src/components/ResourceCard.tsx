@@ -1,4 +1,5 @@
 import { FhirResourceInfo } from '@/lib/fhir-data';
+import React from 'react';
 
 interface ResourceCardProps {
   resource: FhirResourceInfo;
