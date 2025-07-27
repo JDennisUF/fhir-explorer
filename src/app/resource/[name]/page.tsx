@@ -304,7 +304,7 @@ function SchemaTab({ resource }: { resource: FhirResourceInfo }) {
   return (
     <SchemaViewer 
       resourceName={resource.name}
-      schema={[]} // Will use mock data from SchemaViewer
+      schema={undefined as any} // Let SchemaViewer use its mock data
     />
   );
 }
