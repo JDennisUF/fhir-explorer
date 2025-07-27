@@ -56,6 +56,7 @@ export default function Visualization3D({
   const [showSettings, setShowSettings] = useState(false);
   const [config, setConfig] = useState<Visualization3DConfig>(engine.getConfig());
   const animationRef = useRef<number>();
+  const isAnimatingRef = useRef(false);
 
   useEffect(() => {
     if (data) {
@@ -305,11 +306,10 @@ export default function Visualization3D({
         y: prev.y + 0.01
       }));
       
-      if (isAnimating) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
+      // Continue animation if still animating
+      animationRef.current = requestAnimationFrame(animate);
     };
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
   };
 
   const stopAnimation = () => {
@@ -355,10 +355,24 @@ export default function Visualization3D({
   }, [render]);
 
   useEffect(() => {
+    isAnimatingRef.current = isAnimating;
+    
     if (isAnimating) {
-      startAnimation();
+      const animate = () => {
+        setCameraAngle(prev => ({
+          ...prev,
+          y: prev.y + 0.01
+        }));
+        
+        if (isAnimatingRef.current) {
+          animationRef.current = requestAnimationFrame(animate);
+        }
+      };
+      animationRef.current = requestAnimationFrame(animate);
     } else {
-      stopAnimation();
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     }
     
     return () => {

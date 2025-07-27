@@ -33,7 +33,7 @@ export default function Home() {
       filteredResources = filteredResources.filter(resource => resource.category === selectedCategory);
     }
 
-    return filteredResources;
+    return filteredResources.sort((a, b) => a.name.localeCompare(b.name));
   }, [searchQuery, selectedLevel, selectedCategory]);
 
   return (
@@ -148,9 +148,9 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Resource Cards Grid */}
+        {/* Resource Cards List */}
         {resources.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2">
             {resources.map((resource) => (
               <ResourceCard
                 key={resource.name}

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { FHIR_RESOURCES, FHIR_LEVELS, FhirResourceInfo } from '@/lib/fhir-data';
+import { loadExamplesForResource, getExampleDisplayName, FhirExample } from '@/lib/example-loader';
 import { ArrowLeft, ExternalLink, Code, BookOpen, Boxes } from 'lucide-react';
 import JsonViewer from '@/components/JsonViewer';
 import SchemaViewer from '@/components/SchemaViewer';
@@ -15,40 +16,23 @@ export default function ResourceDetailPage() {
   const resourceName = params.name as string;
   
   const [activeTab, setActiveTab] = useState<'overview' | 'schema' | 'examples' | 'codegen' | 'visualization'>('overview');
-  const [exampleData, setExampleData] = useState<any[]>([]);
+  const [exampleData, setExampleData] = useState<FhirExample[]>([]);
   const [loading, setLoading] = useState(false);
 
   const resource: FhirResourceInfo | undefined = FHIR_RESOURCES[resourceName];
 
   useEffect(() => {
-    if (resource?.examples && activeTab === 'examples') {
-      loadExamples();
-    }
-  }, [resource, activeTab]);
+    loadExamples();
+  }, [resourceName]);
 
   const loadExamples = async () => {
-    if (!resource?.examples) return;
-    
     setLoading(true);
     try {
-      const examples = await Promise.all(
-        resource.examples.slice(0, 3).map(async (filename) => {
-          try {
-            const response = await fetch(`/api/fhir-examples/${filename}`);
-            if (response.ok) {
-              const data = await response.json();
-              return { filename, data, error: null };
-            } else {
-              return { filename, data: null, error: 'Failed to load' };
-            }
-          } catch (error) {
-            return { filename, data: null, error: 'Network error' };
-          }
-        })
-      );
-      setExampleData(examples);
+      const examples = await loadExamplesForResource(resourceName);
+      setExampleData(examples.slice(0, 3)); // Show first 3 examples
     } catch (error) {
       console.error('Error loading examples:', error);
+      setExampleData([]);
     } finally {
       setLoading(false);
     }
@@ -144,7 +128,7 @@ export default function ResourceDetailPage() {
               {[
                 { id: 'overview', label: 'Overview', icon: BookOpen },
                 { id: 'schema', label: 'Schema', icon: Code },
-                { id: 'examples', label: 'Examples', icon: ExternalLink, count: resource.examples?.length || 0 },
+                { id: 'examples', label: 'Examples', icon: ExternalLink, count: 0 },
                 { id: 'visualization', label: '3D Visualization', icon: Boxes },
                 { id: 'codegen', label: 'Code Generator', icon: Code }
               ].map(({ id, label, icon: Icon, count }) => (
@@ -171,7 +155,7 @@ export default function ResourceDetailPage() {
 
           <div className="p-6">
             {activeTab === 'overview' && (
-              <OverviewTab resource={resource} />
+              <OverviewTab resource={resource} exampleCount={exampleData.length} />
             )}
             
             {activeTab === 'schema' && (
@@ -180,7 +164,7 @@ export default function ResourceDetailPage() {
             
             {activeTab === 'examples' && (
               <ExamplesTab 
-                resource={resource} 
+                resourceName={resourceName}
                 examples={exampleData} 
                 loading={loading}
               />
@@ -200,7 +184,7 @@ export default function ResourceDetailPage() {
   );
 }
 
-function OverviewTab({ resource }: { resource: FhirResourceInfo }) {
+function OverviewTab({ resource, exampleCount }: { resource: FhirResourceInfo; exampleCount: number }) {
   const router = useRouter();
   
   const relatedResourcesData = resource.relatedResources
@@ -232,7 +216,7 @@ function OverviewTab({ resource }: { resource: FhirResourceInfo }) {
             <div>
               <dt className="text-sm font-medium text-gray-500">Examples Available</dt>
               <dd className="mt-1 text-lg font-semibold text-gray-900">
-                {resource.examples?.length || 0} example{(resource.examples?.length || 0) !== 1 ? 's' : ''}
+                {exampleCount} example{exampleCount !== 1 ? 's' : ''}
               </dd>
             </div>
             <div>
@@ -310,26 +294,14 @@ function SchemaTab({ resource }: { resource: FhirResourceInfo }) {
 }
 
 function ExamplesTab({ 
-  resource, 
+  resourceName,
   examples, 
   loading 
 }: { 
-  resource: FhirResourceInfo;
-  examples: any[];
+  resourceName: string;
+  examples: FhirExample[];
   loading: boolean;
 }) {
-  if (!resource.examples || resource.examples.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <ExternalLink className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No Examples Available</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          No example files are currently available for this resource.
-        </p>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -339,40 +311,56 @@ function ExamplesTab({
     );
   }
 
+  if (examples.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <ExternalLink className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">No Examples Available</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          No example files are currently available for {resourceName} resources.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {examples.map(({ filename, data, error }) => (
-        <div key={filename}>
-          {error ? (
-            <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-              <div className="text-red-700 font-medium">Failed to load {filename}</div>
-              <div className="text-red-600 text-sm mt-1">{error}</div>
+      {examples.map((example) => (
+        <div key={example.filename} className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">
+                {getExampleDisplayName(example)}
+              </h3>
+              <span className="text-sm text-gray-500">{example.filename}</span>
             </div>
-          ) : (
+            {example.data.description && (
+              <p className="text-sm text-gray-600 mt-1">{example.data.description}</p>
+            )}
+          </div>
+          <div className="p-4">
             <JsonViewer 
-              data={data} 
-              filename={filename}
+              data={example.data} 
+              filename={example.filename}
               maxHeight="max-h-96"
             />
-          )}
+          </div>
         </div>
       ))}
       
-      {resource.examples.length > 3 && (
-        <div className="text-center py-4 text-sm text-gray-500">
-          Showing first 3 examples of {resource.examples.length} available
-        </div>
-      )}
+      <div className="text-center py-4 text-sm text-gray-500">
+        Showing first {examples.length} examples for {resourceName}
+      </div>
     </div>
   );
 }
 
-function VisualizationTab({ resource, examples }: { resource: FhirResourceInfo; examples: any[] }) {
+function VisualizationTab({ resource, examples }: { resource: FhirResourceInfo; examples: FhirExample[] }) {
   const [selectedExample, setSelectedExample] = useState<any>(null);
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
   // Use first example with data as default visualization
-  const defaultExample = examples.find(ex => ex.data && !ex.error)?.data;
+  const defaultExample = examples.find(ex => ex.data)?.data;
   const visualizationData = selectedExample || defaultExample;
 
   return (
@@ -405,26 +393,24 @@ function VisualizationTab({ resource, examples }: { resource: FhirResourceInfo; 
               <button
                 key={index}
                 onClick={() => setSelectedExample(example.data)}
-                disabled={!example.data || example.error}
+                disabled={!example.data}
                 className={`text-left p-3 rounded-lg border transition-colors ${
                   selectedExample === example.data
                     ? 'border-blue-500 bg-blue-50'
-                    : example.data && !example.error
+                    : example.data
                     ? 'border-gray-300 hover:border-gray-400 bg-white'
                     : 'border-gray-200 bg-gray-50 cursor-not-allowed'
                 }`}
               >
                 <div className="font-medium text-sm">
-                  {example.filename.replace(/\.(json|xml)$/, '')}
+                  {getExampleDisplayName(example)}
                 </div>
-                {example.error ? (
-                  <div className="text-xs text-red-600 mt-1">{example.error}</div>
-                ) : example.data ? (
+                {example.data ? (
                   <div className="text-xs text-gray-600 mt-1">
                     {Object.keys(example.data).length} properties
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-500 mt-1">Loading...</div>
+                  <div className="text-xs text-gray-500 mt-1">No data available</div>
                 )}
               </button>
             ))}
