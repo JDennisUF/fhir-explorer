@@ -113,9 +113,7 @@ export const EN_TRANSLATIONS: TranslationBundle = {
     relationships: 'Relationships',
     fhirpath: 'FHIRPath',
     profiles: 'Profiles',
-    collaborate: 'Collaborate',
     servers: 'Servers',
-    analytics: 'Analytics',
     testing: 'Testing',
     playground: 'Playground'
   },
@@ -153,21 +151,6 @@ export const EN_TRANSLATIONS: TranslationBundle = {
       invalidDateFormat: 'Date must be in YYYY-MM-DD format',
       invalidGender: 'Gender must be one of: male, female, other, unknown'
     }
-  },
-  analytics: {
-    title: 'Learning Analytics Dashboard',
-    subtitle: 'Track your FHIR learning progress and insights',
-    overview: 'Overview',
-    progress: 'Learning Progress',
-    insights: 'Insights',
-    resourcesExplored: 'Resources Explored',
-    timeSpent: 'Time Spent Learning',
-    totalSessions: 'Total Sessions',
-    averageSession: 'Average Session',
-    completionRate: 'Completion Rate',
-    mostActiveDay: 'Most Active Day',
-    favoriteResource: 'Favorite Resource',
-    learningStreak: 'Learning Streak'
   },
   testing: {
     title: 'FHIR Testing Framework',
@@ -215,20 +198,6 @@ export const EN_TRANSLATIONS: TranslationBundle = {
     showDetails: 'Show details',
     hideDetails: 'Hide details'
   },
-  collaboration: {
-    title: 'Real-time Collaboration',
-    subtitle: 'Work together on FHIR resources with live editing',
-    createRoom: 'Create Room',
-    joinRoom: 'Join Room',
-    roomCode: 'Room Code',
-    participants: 'Participants',
-    onlineUsers: 'Online Users',
-    shareRoom: 'Share Room',
-    leaveRoom: 'Leave Room',
-    liveEditing: 'Live Editing',
-    chatMessages: 'Chat Messages',
-    sendMessage: 'Send Message'
-  }
 };
 
 // Spanish translations
@@ -264,9 +233,7 @@ export const ES_TRANSLATIONS: TranslationBundle = {
     relationships: 'Relaciones',
     fhirpath: 'FHIRPath',
     profiles: 'Perfiles',
-    collaborate: 'Colaborar',
     servers: 'Servidores',
-    analytics: 'Analíticas',
     testing: 'Pruebas',
     playground: 'Zona de Pruebas'
   },
@@ -293,21 +260,6 @@ export const ES_TRANSLATIONS: TranslationBundle = {
       invalidGender: 'El género debe ser uno de: male, female, other, unknown'
     }
   },
-  analytics: {
-    title: 'Panel de Analíticas de Aprendizaje',
-    subtitle: 'Rastrea tu progreso de aprendizaje FHIR e insights',
-    overview: 'Resumen',
-    progress: 'Progreso de Aprendizaje',
-    insights: 'Insights',
-    resourcesExplored: 'Recursos Explorados',
-    timeSpent: 'Tiempo Gastado Aprendiendo',
-    totalSessions: 'Sesiones Totales',
-    averageSession: 'Sesión Promedio',
-    completionRate: 'Tasa de Completitud',
-    mostActiveDay: 'Día Más Activo',
-    favoriteResource: 'Recurso Favorito',
-    learningStreak: 'Racha de Aprendizaje'
-  }
 };
 
 // French translations
@@ -343,9 +295,7 @@ export const FR_TRANSLATIONS: TranslationBundle = {
     relationships: 'Relations',
     fhirpath: 'FHIRPath',
     profiles: 'Profils',
-    collaborate: 'Collaborer',
     servers: 'Serveurs',
-    analytics: 'Analytiques',
     testing: 'Tests',
     playground: 'Terrain de jeu'
   },

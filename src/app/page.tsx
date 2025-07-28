@@ -81,25 +81,11 @@ export default function Home() {
                   <span className="hidden md:inline">⚙️ {t('navigation.profiles')}</span>
                 </button>
                 <button
-                  onClick={() => router.push('/collaborate')}
-                  className="inline-flex items-center px-3 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors text-xs md:text-sm font-medium"
-                >
-                  <span className="md:hidden">👥</span>
-                  <span className="hidden md:inline">👥 {t('navigation.collaborate')}</span>
-                </button>
-                <button
                   onClick={() => router.push('/servers')}
                   className="inline-flex items-center px-3 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors text-xs md:text-sm font-medium"
                 >
                   <span className="md:hidden">🌐</span>
                   <span className="hidden md:inline">🌐 {t('navigation.servers')}</span>
-                </button>
-                <button
-                  onClick={() => router.push('/analytics')}
-                  className="inline-flex items-center px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-xs md:text-sm font-medium"
-                >
-                  <span className="md:hidden">📊</span>
-                  <span className="hidden md:inline">📊 {t('navigation.analytics')}</span>
                 </button>
                 <button
                   onClick={() => router.push('/testing')}
